@@ -396,14 +396,18 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
             tvp = &tv;
         }
 
+        //执行beforesleep， 会处理client中的数据，比如解析命令，并执行命令（详情请看serve.c中的processCommand）
         if (eventLoop->beforesleep != NULL && flags & AE_CALL_BEFORE_SLEEP)
             eventLoop->beforesleep(eventLoop);
 
         /* Call the multiplexing API, will return only on timeout or when
          * some event fires. */
+        //获得所有的被io触发的事件
+        //比如已通过aeApiAddEvent注册了tcp相关的的事件，在这里可以拿到所有被触发的client事件
         numevents = aeApiPoll(eventLoop, tvp);
 
         /* After sleep callback. */
+        //会调用自定义Module处理
         if (eventLoop->aftersleep != NULL && flags & AE_CALL_AFTER_SLEEP)
             eventLoop->aftersleep(eventLoop);
 
@@ -433,6 +437,7 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
              * Fire the readable event if the call sequence is not
              * inverted. */
             if (!invert && fe->mask & mask & AE_READABLE) {
+                //比如创建tcp链接 请看sever.c 2569行
                 fe->rfileProc(eventLoop,fd,fe->clientData,mask);
                 fired++;
                 fe = &eventLoop->events[fd]; /* Refresh in case of resize. */

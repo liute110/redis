@@ -2565,6 +2565,7 @@ void initServer(void) {
 
     /* Create an event handler for accepting new connections in TCP and Unix
      * domain sockets. */
+    //在这里会创建handler接受客户端tcp链接
     if (createSocketAcceptHandler(&server.ipfd, acceptTcpHandler) != C_OK) {
         serverPanic("Unrecoverable error creating TCP socket accept handler.");
     }
@@ -7008,7 +7009,8 @@ int main(int argc, char **argv) {
         serverLog(LL_WARNING, "Configuration loaded");
     }
 
-    initServer();
+    //初始化server，比如server.el
+    initServer(); 
     if (background || server.pidfile) createPidFile();
     if (server.set_proc_title) redisSetProcTitle(NULL);
     redisAsciiArt();
@@ -7036,11 +7038,14 @@ int main(int argc, char **argv) {
         }
     #endif /* __arm64__ */
     #endif /* __linux__ */
+        //module指的是自定义模块
         moduleInitModulesSystemLast();
         moduleLoadFromQueue();
+        //ACL:Access Control List
         ACLLoadUsersAtStartup();
         InitServerLast();
         aofLoadManifestFromDisk();
+        //加载rdb和aof数据
         loadDataFromDisk();
         aofOpenIfNeededOnServerStart();
         aofDelHistoryFiles();
